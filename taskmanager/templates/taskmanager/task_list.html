@@ -1,0 +1,179 @@
+{% extends 'taskmanager/base.html' %}
+{% load static %}
+
+{% block content %}
+<h2 class="mb-4">Task Board</h2>
+<div class="row">
+    <!-- To Do Section -->
+    <div class="col-md-4">
+        <h3>To Do</h3>
+        <div id="to-do" class="task-column">
+            {% for task in to_do_tasks %}
+                <div class="card task-card shadow-sm mb-3" data-task-id="{{ task.id }}" draggable="true">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ task.name }}</h5>
+                        <p class="card-text">{{ task.description }}</p>
+                        <p class="card-text"><strong>Priority:</strong> {{ task.priority }}</p>
+                        <p class="card-text"><strong>Deadline:</strong> {{ task.deadline }}</p>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No tasks in this category.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Doing Section -->
+    <div class="col-md-4">
+        <h3>Doing</h3>
+        <div id="doing" class="task-column">
+            {% for task in doing_tasks %}
+                <div class="card task-card shadow-sm mb-3" data-task-id="{{ task.id }}" draggable="true">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ task.name }}</h5>
+                        <p class="card-text">{{ task.description }}</p>
+                        <p class="card-text"><strong>Priority:</strong> {{ task.priority }}</p>
+                        <p class="card-text"><strong>Deadline:</strong> {{ task.deadline }}</p>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No tasks in this category.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Done Section -->
+    <div class="col-md-4">
+        <h3>Done</h3>
+        <div id="done" class="task-column">
+            {% for task in done_tasks %}
+                <div class="card task-card shadow-sm mb-3" data-task-id="{{ task.id }}" draggable="true">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ task.name }}</h5>
+                        <p class="card-text">{{ task.description }}</p>
+                        <p class="card-text"><strong>Priority:</strong> {{ task.priority }}</p>
+                        <p class="card-text"><strong>Deadline:</strong> {{ task.deadline }}</p>
+                        <a href="{% url 'task_update' task.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No tasks in this category.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Button -->
+<div class="mt-4">
+    <a href="{% url 'task_create' %}" class="btn btn-primary">Create a Task</a>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const draggables = document.querySelectorAll('[draggable="true"]');
+    const containers = document.querySelectorAll('.task-column');
+
+    // Add event listeners to draggable elements
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            draggable.classList.add('dragging');
+        });
+
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging');
+        });
+    });
+
+    // Add event listeners to container sections
+    containers.forEach(container => {
+        // Allow dragging over the container
+        container.addEventListener('dragover', e => {
+            e.preventDefault();
+            const afterElement = getDragAfterElement(container, e.clientY);
+            const draggable = document.querySelector('.dragging');
+
+            // Insert the draggable task at the correct position
+            if (afterElement == null) {
+                container.appendChild(draggable);
+            } else {
+                container.insertBefore(draggable, afterElement);
+            }
+        });
+
+        // Handle dropping the task into a container
+        container.addEventListener('drop', e => {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            container.appendChild(draggable);
+
+            // Hide the "No tasks in this category" message
+            toggleEmptyMessage(container);
+
+            // Update task status on the server via AJAX
+            updateTaskStatus(draggable.dataset.taskId, container.id);
+        });
+    });
+
+    // Function to toggle the "No tasks in this category" message
+    function toggleEmptyMessage(container) {
+        const emptyMessage = container.querySelector('p');
+        const hasTasks = container.querySelectorAll('.task-card').length > 0;
+
+        if (emptyMessage && hasTasks) {
+            emptyMessage.style.display = 'none';
+        } else if (emptyMessage) {
+            emptyMessage.style.display = 'block';
+        }
+    }
+
+    // Function to get the element after which the draggable should be placed
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.task-card:not(.dragging)')];
+
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Function to send updated task status to the server
+    function updateTaskStatus(taskId, sectionId) {
+        const statusMap = {
+            'to-do': 'To Do',
+            'doing': 'Doing',
+            'done': 'Done',
+        };
+        const newStatus = statusMap[sectionId];
+
+        // Send an AJAX POST request to update the task's status
+        fetch(`/update_task_status/${taskId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ status: newStatus }),
+        }).then(response => {
+            if (response.ok) {
+                console.log(`Task ${taskId} updated to status: ${newStatus}`);
+            } else {
+                console.error('Failed to update task status');
+            }
+        });
+    }
+});
+
+</script>
+{% endblock %}

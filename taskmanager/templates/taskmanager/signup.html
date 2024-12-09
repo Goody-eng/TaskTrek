@@ -1,0 +1,17 @@
+{% extends "taskmanager/base.html" %}
+
+{% block content %}
+<h2>Signup</h2>
+<form method="POST" action="{% url 'signup_page' %}">
+    {% csrf_token %}
+    {{ form.as_p }}  <!-- Render the form fields with appropriate styling -->
+    <button type="submit" class="btn btn-primary">Sign Up</button>
+</form>
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "taskmanager/base.html" %}
+
+{% block content %}
+<h2>{% if object %}Update{% else %}Create{% endif %} Task</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    
+    <!-- Task Name -->
+    <div class="form-group">
+        {{ form.name.label_tag }}
+        {{ form.name }}
+        {{ form.name.errors }}
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+        {{ form.description.label_tag }}
+        {{ form.description }}
+        {{ form.description.errors }}
+    </div>
+
+    <!-- Priority Dropdown -->
+    <div class="form-group">
+        <label for="id_priority">Priority</label>
+        <select name="priority" id="id_priority" class="form-control">
+            <option value="High" {% if form.priority.value == "High" %}selected{% endif %}>High</option>
+            <option value="Low" {% if form.priority.value == "Low" %}selected{% endif %}>Low</option>
+        </select>
+    </div>
+
+    <!-- Status Dropdown -->
+    <div class="form-group">
+        <label for="id_status">Status</label>
+        <select name="status" id="id_status" class="form-control">
+            <option value="To Do" {% if form.status.value == "To Do" %}selected{% endif %}>To Do</option>
+            <option value="Doing" {% if form.status.value == "Doing" %}selected{% endif %}>Doing</option>
+        </select>
+    </div>
+
+    <!-- Deadline -->
+    <div class="form-group">
+        {{ form.deadline.label_tag }}
+        {{ form.deadline }}
+        {{ form.deadline.errors }}
+    </div>
+
+    <!-- Project (Optional for self-assigned tasks) -->
+    <div class="form-group">
+        {{ form.project.label_tag }}
+        {{ form.project }}
+        {{ form.project.errors }}
+    </div>
+
+    <!-- Assignee (Optional for self-assigned tasks) -->
+    <div class="form-group">
+        {{ form.assignee.label_tag }}
+        {{ form.assignee }}
+        {{ form.assignee.errors }}
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-success">Save</button>
+    <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

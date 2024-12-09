@@ -1,0 +1,40 @@
+/* task_list.css */
+.task-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #fff;
+}
+
+.task-column {
+    min-height: 400px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.btn-warning, .btn-danger {
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+.shadow-sm {
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for horizontal cards */
+.card-horizontal {
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+}
+
+.card-horizontal .col-md-4 {
+    padding: 5px;
+}
+
+.card-horizontal .card-body {
+    padding: 10px;
+}
